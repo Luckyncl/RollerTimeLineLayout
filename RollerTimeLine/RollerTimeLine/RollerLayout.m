@@ -36,6 +36,7 @@
 }
 
 - (void)prepareLayout {
+
     _itemWidth = self.collectionView.bounds.size.width;
     _itemHeight = _itemWidth / 4.0 * 3.0;
     _midY = (self.collectionView.bounds.size.height - _itemHeight) / 2.0;
@@ -43,27 +44,40 @@
     NSInteger sections = [self.collectionView numberOfSections];
     NSAssert(sections == 1, @"Only 1 section supported!");
     
-    NSInteger items = [self.collectionView numberOfItemsInSection:0];
-    _itemCount = items;
-    CGFloat offsetY = self.collectionView.contentOffset.y;
+    _itemCount = [self.collectionView numberOfItemsInSection:0];
     
-    for (NSInteger item = 0; item < items; item++) {
+    CGFloat offsetY = self.collectionView.contentOffset.y;
+    NSInteger centerIndex = offsetY/_margin;
+    if (centerIndex < 0) {
+        centerIndex = 0;
+    }
+    
+    // we only calculate visible items' layout attributes
+    // 3 items, one for the item in center, 2 additional for the pre-layout items.
+    NSInteger visibleCount = (self.collectionView.bounds.size.height - _itemHeight)/_margin + 3;
+    NSInteger startIndex = centerIndex - visibleCount/2;
+    if (startIndex < 0) {
+        startIndex = 0;
+    }
+    
+    NSInteger visibleItems = startIndex + visibleCount;
+    for (NSInteger item = startIndex; item < visibleItems; item++) {
+        
+        /*
+         *   fix bug 'UICollectionView received layout attributes for a cell with an index path that does not exist'
+         */
+        if (item >= _itemCount) break;
+        
         NSIndexPath *indexPath = [NSIndexPath indexPathForItem:item inSection:0];
         UICollectionViewLayoutAttributes *attr = _layoutInfos[indexPath];
         if (!attr) {
-            NSLog(@"attr == nil");
             attr = [UICollectionViewLayoutAttributes layoutAttributesForCellWithIndexPath:indexPath];
         }
         
-//        CATransform3D transform = CATransform3DIdentity;
-//        transform.m34 = -1.0/1000.0;
-//        transform = CATransform3DRotate(transform, -0.6, 0, 1, 0);
-//        attr.transform3D = transform;
-        
-        CGFloat diff =  fabs((offsetY/_margin) - item);
-        NSInteger z = _itemCount/2 - diff;
+        NSInteger z = _itemCount/2 - labs(centerIndex - item);
         attr.zIndex = z;
         
+        CGFloat diff =  fabs((offsetY/_margin) - item);
         CGFloat x = diff * _margin;
         attr.frame = CGRectMake(x,
                                 _midY + _margin * item,
@@ -72,7 +86,6 @@
         [_layoutInfos setObject:attr forKey:indexPath];
     }
 }
-
 -(CGSize)collectionViewContentSize {
     CGFloat height = _margin * (_itemCount - 1) +  _itemHeight + 2 * _midY;
     return CGSizeMake(_itemWidth, height);
