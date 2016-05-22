@@ -4,7 +4,7 @@ A collection view layout with roller effect.
 ## Introduction
 This is an implementation for the collection view layout below:
 
-![](https://raw.githubusercontent.com/StanOz/RollerTimeLineLayo<!---->ut/master/rollerLayoutDemo.gif)  
+![](https://raw.githubusercontent.com/StanOz/RollerTimeLineLayout/master/rollerLayoutDemo.gif)  
 
 `RollerLayout.h` could be used in storyboard and the property `margin` is inspectable. So the following code is used to fetching margin to adjust collectionView's offset.
 
